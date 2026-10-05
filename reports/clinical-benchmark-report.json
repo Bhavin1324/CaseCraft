@@ -1,0 +1,255 @@
+{
+  "suiteTimestamp": "2026-10-05T18:10:22.076Z",
+  "isMockMode": true,
+  "totalTests": 500,
+  "passed": 500,
+  "failed": 0,
+  "durationSeconds": 0.09,
+  "profileCoverage": {
+    "ideal_lsmc": {
+      "total": 100,
+      "passed": 100
+    },
+    "section_88_leading_trap": {
+      "total": 100,
+      "passed": 100
+    },
+    "withheld_modality": {
+      "total": 100,
+      "passed": 100
+    },
+    "mentor_json_eval": {
+      "total": 100,
+      "passed": 100
+    },
+    "sbar_handover": {
+      "total": 100,
+      "passed": 100
+    }
+  },
+  "domainCoverage": {
+    "Gastrointestinal": {
+      "total": 100,
+      "passed": 100
+    },
+    "Respiratory": {
+      "total": 100,
+      "passed": 100
+    },
+    "Dermatological": {
+      "total": 100,
+      "passed": 100
+    },
+    "Neurological/Headache": {
+      "total": 100,
+      "passed": 100
+    },
+    "Musculoskeletal/Rheumatic": {
+      "total": 100,
+      "passed": 100
+    }
+  },
+  "remedyCoverage": {
+    "Acon": {
+      "total": 10,
+      "passed": 10
+    },
+    "Apis": {
+      "total": 10,
+      "passed": 10
+    },
+    "Arg-n": {
+      "total": 10,
+      "passed": 10
+    },
+    "Arn": {
+      "total": 10,
+      "passed": 10
+    },
+    "Ars-alb": {
+      "total": 10,
+      "passed": 10
+    },
+    "Bapt": {
+      "total": 10,
+      "passed": 10
+    },
+    "Bell": {
+      "total": 10,
+      "passed": 10
+    },
+    "Bry": {
+      "total": 10,
+      "passed": 10
+    },
+    "Calc-c": {
+      "total": 10,
+      "passed": 10
+    },
+    "Calc-p": {
+      "total": 10,
+      "passed": 10
+    },
+    "Canth": {
+      "total": 10,
+      "passed": 10
+    },
+    "Carbo-v": {
+      "total": 10,
+      "passed": 10
+    },
+    "Caust": {
+      "total": 10,
+      "passed": 10
+    },
+    "Cham": {
+      "total": 10,
+      "passed": 10
+    },
+    "Cinchona": {
+      "total": 10,
+      "passed": 10
+    },
+    "Coloc": {
+      "total": 10,
+      "passed": 10
+    },
+    "Dros": {
+      "total": 10,
+      "passed": 10
+    },
+    "Dulc": {
+      "total": 10,
+      "passed": 10
+    },
+    "Gels": {
+      "total": 10,
+      "passed": 10
+    },
+    "Hep-s": {
+      "total": 10,
+      "passed": 10
+    },
+    "Ign": {
+      "total": 10,
+      "passed": 10
+    },
+    "Ipec": {
+      "total": 10,
+      "passed": 10
+    },
+    "Kali-bi": {
+      "total": 10,
+      "passed": 10
+    },
+    "Kali-c": {
+      "total": 10,
+      "passed": 10
+    },
+    "Lach": {
+      "total": 10,
+      "passed": 10
+    },
+    "Led": {
+      "total": 10,
+      "passed": 10
+    },
+    "Lyc": {
+      "total": 10,
+      "passed": 10
+    },
+    "Mag-p": {
+      "total": 10,
+      "passed": 10
+    },
+    "Merc-sol": {
+      "total": 10,
+      "passed": 10
+    },
+    "Nat-m": {
+      "total": 10,
+      "passed": 10
+    },
+    "Nat-s": {
+      "total": 10,
+      "passed": 10
+    },
+    "Nit-ac": {
+      "total": 10,
+      "passed": 10
+    },
+    "Nux-v": {
+      "total": 10,
+      "passed": 10
+    },
+    "Phos": {
+      "total": 10,
+      "passed": 10
+    },
+    "Plat": {
+      "total": 10,
+      "passed": 10
+    },
+    "Podo": {
+      "total": 10,
+      "passed": 10
+    },
+    "Puls": {
+      "total": 10,
+      "passed": 10
+    },
+    "Pyrog": {
+      "total": 10,
+      "passed": 10
+    },
+    "Rhus-t": {
+      "total": 10,
+      "passed": 10
+    },
+    "Ruta": {
+      "total": 10,
+      "passed": 10
+    },
+    "Sep": {
+      "total": 10,
+      "passed": 10
+    },
+    "Sil": {
+      "total": 10,
+      "passed": 10
+    },
+    "Spig": {
+      "total": 10,
+      "passed": 10
+    },
+    "Spong": {
+      "total": 10,
+      "passed": 10
+    },
+    "Staph": {
+      "total": 10,
+      "passed": 10
+    },
+    "Stram": {
+      "total": 10,
+      "passed": 10
+    },
+    "Sulph": {
+      "total": 10,
+      "passed": 10
+    },
+    "Thuja": {
+      "total": 10,
+      "passed": 10
+    },
+    "Verat-a": {
+      "total": 10,
+      "passed": 10
+    },
+    "Zinc": {
+      "total": 10,
+      "passed": 10
+    }
+  },
+  "failures": []
+}
