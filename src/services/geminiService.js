@@ -455,7 +455,8 @@ export async function chatWithPatient({
   const systemInstruction = getPatientSystemPrompt(scenario);
 
   if (provider === 'openai') {
-    const cleanList = messages.filter((m) => m.sender !== 'system');
+    const safeList = Array.isArray(messages) ? messages : [];
+    const cleanList = safeList.filter((m) => m && m.sender !== 'system');
     const dialog = [];
 
     // If patient initiated the consultation, prepend initial clinical invitation
@@ -503,7 +504,8 @@ export async function chatWithPatient({
 
   // Google Gemini API call with automated fallback
   const contents = [];
-  const cleanMessages = messages.filter((m) => m.sender !== 'system');
+  const safeMessages = Array.isArray(messages) ? messages : [];
+  const cleanMessages = safeMessages.filter((m) => m && m.sender !== 'system');
 
   for (const msg of cleanMessages) {
     contents.push({
@@ -559,9 +561,10 @@ export async function evaluateCaseTaking({
 
   const cleanKey = apiKey.trim().replace(/^["']|["']$/g, '');
 
-  const transcriptText = messages
-    .filter((m) => m.sender !== 'system')
-    .map((m) => `${m.sender === 'doctor' ? 'Doctor' : 'Patient'}: "${m.text}"`)
+  const safeMessages = Array.isArray(messages) ? messages : [];
+  const transcriptText = safeMessages
+    .filter((m) => m && m.sender !== 'system')
+    .map((m) => `${m.sender === 'doctor' ? 'Doctor' : 'Patient'}: "${m.text || ''}"`)
     .join('\n');
 
   const caseNotesText =

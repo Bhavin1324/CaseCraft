@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Mic, MicOff, Sparkles, Loader2 } from 'lucide-react';
+import { Send, Mic, MicOff, Sparkles, Loader2, Pill } from 'lucide-react';
 
 const QUICK_PROBES = [
   {
@@ -44,8 +44,18 @@ const QUICK_PROBES = [
   }
 ];
 
-export default function Composer({ onSend, isTyping, disabled }) {
-  const [text, setText] = useState('');
+export default function Composer({
+  onSend,
+  isTyping,
+  disabled,
+  onOpenPrescribe,
+  text: propText,
+  setText: propSetText
+}) {
+  const [localText, setLocalText] = useState('');
+  const text = propText !== undefined ? propText : localText;
+  const setText = propSetText !== undefined ? propSetText : setLocalText;
+
   const [isListening, setIsListening] = useState(false);
   const [speechError, setSpeechError] = useState(null);
   const inputRef = useRef(null);
@@ -94,7 +104,7 @@ export default function Composer({ onSend, isTyping, disabled }) {
         }
       }
     };
-  }, []);
+  }, [setText]);
 
   const toggleListening = () => {
     if (!recognitionRef.current) {
@@ -227,6 +237,20 @@ export default function Composer({ onSend, isTyping, disabled }) {
             </button>
           )}
         </div>
+
+        {/* Prescribe Shortcut Button */}
+        {onOpenPrescribe && (
+          <button
+            type="button"
+            onClick={onOpenPrescribe}
+            disabled={isTyping || disabled}
+            title="Formulate homeopathic prescription and conclude consultation"
+            className="h-11 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 hover:text-white border border-emerald-500/40 flex items-center justify-center gap-1.5 transition cursor-pointer shrink-0 min-h-[44px]"
+          >
+            <Pill className="w-4 h-4 text-emerald-400" />
+            <span className="hidden sm:inline text-xs font-semibold">Prescribe</span>
+          </button>
+        )}
 
         {/* Send Button */}
         <button

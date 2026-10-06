@@ -1,25 +1,14 @@
 import { useState } from 'react';
-import {
-  Key,
-  X,
-  ExternalLink,
-  CheckCircle,
-  AlertCircle,
-  Eye,
-  EyeOff,
-  Sparkles,
-  Shield,
-  Loader2,
-  Trash2,
-  Lock
-} from 'lucide-react';
+import { Key, X, Shield, Trash2, Check } from 'lucide-react';
 import { useApi } from '../../context/ApiContext';
 import {
   testApiKey,
   DEFAULT_GEMINI_MODEL,
-  DEFAULT_OPENAI_MODEL,
-  maskKey
+  DEFAULT_OPENAI_MODEL
 } from '../../services/geminiService';
+import ProviderSelector from './settings/ProviderSelector';
+import ModelSelector from './settings/ModelSelector';
+import ApiKeySection from './settings/ApiKeySection';
 
 function SettingsModalContent({ onClose }) {
   const {
@@ -38,19 +27,31 @@ function SettingsModalContent({ onClose }) {
   // New keys entered by user in this session (NEVER pre-filled with raw secret keys)
   const [newGeminiKey, setNewGeminiKey] = useState('');
   const [newOpenaiKey, setNewOpenaiKey] = useState('');
-  const [showKey, setShowKey] = useState(false);
 
   const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState(null); // { success: boolean, message: string }
+  const [testResult, setTestResult] = useState(null);
 
   // Active stored key for the currently selected provider
   const configuredKey = localProvider === 'gemini' ? (geminiApiKey || '') : (openaiApiKey || '');
-  const hasConfiguredKey = Boolean(configuredKey && configuredKey.trim().length > 0);
 
   // Current typed input
   const currentTypedKey = localProvider === 'gemini' ? newGeminiKey : newOpenaiKey;
   // Key to test: typed input takes precedence, otherwise test currently configured key
   const effectiveKeyToTest = currentTypedKey.trim() || configuredKey.trim();
+
+  const handleProviderSelect = (newProv) => {
+    setLocalProvider(newProv);
+    setLocalModel(newProv === 'gemini' ? DEFAULT_GEMINI_MODEL : DEFAULT_OPENAI_MODEL);
+    setTestResult(null);
+  };
+
+  const handleNewKeyChange = (val) => {
+    if (localProvider === 'gemini') {
+      setNewGeminiKey(val);
+    } else {
+      setNewOpenaiKey(val);
+    }
+  };
 
   const handleTestConnection = async () => {
     if (!effectiveKeyToTest) {
@@ -140,297 +141,97 @@ function SettingsModalContent({ onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-700/80 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200">
+      <div className="bg-slate-900 border-t sm:border border-slate-700/80 rounded-t-3xl sm:rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[88vh] animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 duration-200">
+        {/* Mobile Drag Indicator Pill */}
+        <div className="w-12 h-1.5 bg-slate-700/80 rounded-full mx-auto mt-2.5 mb-1 sm:hidden shrink-0" />
+
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
+        <div className="px-4 py-3 sm:px-5 sm:py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-teal-500/20 border border-teal-500/30 flex items-center justify-center text-teal-300">
+            <div className="w-9 h-9 rounded-xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center text-teal-300 shrink-0">
               <Key className="w-4 h-4" />
             </div>
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                AI Engine & API Settings
+                AI Engine &amp; API Settings
                 <span className="text-[10px] font-normal px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  Client-Side Only
+                  Client-Side
                 </span>
               </h3>
-              <p className="text-xs text-slate-400">Configure Google Gemini or OpenAI for live case roleplay</p>
+              <p className="text-[11px] sm:text-xs text-slate-400">Configure Google Gemini or OpenAI</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Modal Body */}
-        <div className="p-5 space-y-4 overflow-y-auto text-xs text-slate-300">
-          {/* Provider Tabs */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-              Select AI Provider
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setLocalProvider('gemini');
-                  setLocalModel(DEFAULT_GEMINI_MODEL);
-                  setTestResult(null);
-                }}
-                className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition cursor-pointer ${
-                  localProvider === 'gemini'
-                    ? 'bg-teal-950/40 border-teal-500 text-white ring-1 ring-teal-500/50'
-                    : 'bg-slate-800/60 border-slate-700/70 text-slate-400 hover:bg-slate-800'
-                }`}
-              >
-                <Sparkles className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-bold text-teal-300">Google Gemini (Recommended)</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Free tier with Google AI Studio</p>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setLocalProvider('openai');
-                  setLocalModel(DEFAULT_OPENAI_MODEL);
-                  setTestResult(null);
-                }}
-                className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition cursor-pointer ${
-                  localProvider === 'openai'
-                    ? 'bg-emerald-950/40 border-emerald-500 text-white ring-1 ring-emerald-500/50'
-                    : 'bg-slate-800/60 border-slate-700/70 text-slate-400 hover:bg-slate-800'
-                }`}
-              >
-                <div className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold text-[9px] shrink-0 mt-0.5">
-                  AI
-                </div>
-                <div>
-                  <p className="font-bold text-slate-200">OpenAI Fallback</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">GPT-4o-mini / GPT-4o</p>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          {/* Model Selector */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
-              Select Model
-            </label>
-            <select
-              value={localModel}
-              onChange={(e) => setLocalModel(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 text-xs focus:ring-1 focus:ring-teal-500 focus:outline-none cursor-pointer"
-            >
-              {localProvider === 'gemini' ? (
-                <>
-                  <option value="gemini-1.5-flash">Gemini 1.5 Flash (Recommended Free Tier Default)</option>
-                  <option value="gemini-2.0-flash">Gemini 2.0 Flash (Next-Gen High Performance)</option>
-                  <option value="gemini-1.5-flash-8b">Gemini 1.5 Flash 8B (Ultra-Lightweight)</option>
-                  <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep Clinical Reasoning)</option>
-                  <option value="gemini-flash-lite-latest">Gemini Flash Lite Latest</option>
-                  <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-                </>
-              ) : (
-                <>
-                  <option value="gpt-4o-mini">GPT-4o-mini (Cost-effective & fast)</option>
-                  <option value="gpt-4o">GPT-4o (Most capable)</option>
-                </>
-              )}
-            </select>
-          </div>
-
-          {/* Configured Key Status Banner */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-              Active Key Status
-            </label>
-            {hasConfiguredKey ? (
-              <div className="p-3 bg-emerald-950/30 border border-emerald-500/40 rounded-xl flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-                    <CheckCircle className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] font-bold text-emerald-300">
-                        {localProvider === 'gemini' ? 'Gemini' : 'OpenAI'} Key Configured
-                      </span>
-                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono flex items-center gap-0.5">
-                        <Lock className="w-2.5 h-2.5" /> Protected
-                      </span>
-                    </div>
-                    <p className="font-mono text-[11px] text-slate-300 tracking-wider truncate mt-0.5">
-                      {maskKey(configuredKey)}
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleRemoveActiveKey}
-                  title="Remove this key and switch to offline mode"
-                  className="px-2.5 py-1.5 rounded-lg border border-rose-500/40 text-rose-300 hover:bg-rose-950/40 hover:text-rose-200 text-[11px] font-medium flex items-center gap-1 transition cursor-pointer shrink-0"
-                >
-                  <Trash2 className="w-3 h-3" />
-                  Remove
-                </button>
-              </div>
-            ) : (
-              <div className="p-3 bg-slate-800/40 border border-slate-700/60 rounded-xl flex items-center gap-2.5 text-slate-400">
-                <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
-                <div className="text-[11px]">
-                  <span className="font-medium text-slate-300">No active key configured.</span>{' '}
-                  <span className="text-slate-400">
-                    Simulator will run in offline heuristic mode. Paste a key below to enable live AI responses.
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* API Key Input Field (Always Blank by Default - Never displays raw key) */}
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="font-semibold text-slate-300">
-                {hasConfiguredKey
-                  ? 'Replace Configured Key (Optional)'
-                  : localProvider === 'gemini'
-                  ? 'Google Gemini API Key'
-                  : 'OpenAI API Key'}
-              </label>
-              {localProvider === 'gemini' && (
-                <a
-                  href="https://aistudio.google.com/app/apikey"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-teal-400 hover:text-teal-300 flex items-center gap-1 text-[11px] underline"
-                >
-                  Get free key from Google AI Studio
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              )}
-            </div>
-
-            <div className="relative">
-              <input
-                type={showKey ? 'text' : 'password'}
-                value={localProvider === 'gemini' ? newGeminiKey : newOpenaiKey}
-                onChange={(e) =>
-                  localProvider === 'gemini'
-                    ? setNewGeminiKey(e.target.value)
-                    : setNewOpenaiKey(e.target.value)
-                }
-                placeholder={
-                  hasConfiguredKey
-                    ? 'Paste new key here to replace active key...'
-                    : localProvider === 'gemini'
-                    ? 'Paste your Gemini key here (AIzaSy...)'
-                    : 'Paste your OpenAI key here (sk-...)'
-                }
-                autoComplete="off"
-                spellCheck="false"
-                className="w-full bg-slate-800/90 border border-slate-700 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-slate-100 placeholder-slate-500 font-mono focus:ring-1 focus:ring-teal-500 focus:outline-none"
-              />
-              <button
-                type="button"
-                onClick={() => setShowKey(!showKey)}
-                title={showKey ? 'Hide key input' : 'Show key input'}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 p-1 cursor-pointer"
-              >
-                {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-              </button>
-            </div>
-            <p className="text-[11px] text-slate-400 mt-1">
-              {hasConfiguredKey
-                ? 'Leave this field blank to keep your current active key.'
-                : 'Key will be saved locally on your device in browser storage.'}
-            </p>
-          </div>
-
-          {/* Test Connection Button & Result */}
-          <div className="pt-1">
-            <button
-              type="button"
-              onClick={handleTestConnection}
-              disabled={testing || !effectiveKeyToTest}
-              className="w-full py-2.5 px-3 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 border border-slate-700 rounded-xl font-medium transition flex items-center justify-center gap-2 cursor-pointer"
-            >
-              {testing ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-teal-400" />
-                  Testing API Connectivity...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-3.5 h-3.5 text-teal-400" />
-                  {currentTypedKey.trim()
-                    ? 'Test New API Key'
-                    : hasConfiguredKey
-                    ? 'Test Active Key Connection'
-                    : 'Test API Connection'}
-                </>
-              )}
-            </button>
-
-            {testResult && (
-              <div
-                className={`mt-2 p-2.5 rounded-xl border text-xs flex items-start gap-2 animate-in fade-in ${
-                  testResult.success
-                    ? 'bg-emerald-950/40 border-emerald-500/50 text-emerald-300'
-                    : 'bg-rose-950/40 border-rose-500/50 text-rose-300'
-                }`}
-              >
-                {testResult.success ? (
-                  <CheckCircle className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />
-                ) : (
-                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
-                )}
-                <span className="leading-relaxed">{testResult.message}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Privacy & Security Note */}
-          <div className="p-3 bg-slate-800/40 border border-slate-700/60 rounded-xl flex items-start gap-2.5 text-[11px] text-slate-400">
-            <Shield className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
-            <p>
-              <strong>100% Client-Side Privacy:</strong> Your key is stored exclusively in your browser&apos;s local storage and is never displayed in plaintext in the input field. Requests are sent directly to Google or OpenAI from your device without any backend intermediary.
-            </p>
-          </div>
-        </div>
-
-        {/* Footer Actions */}
-        <div className="p-4 border-t border-slate-800 bg-slate-900/90 flex items-center justify-between gap-2">
           <button
             type="button"
-            onClick={handleClearAll}
-            className="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1.5 py-1.5 px-2 rounded-lg hover:bg-rose-950/30 transition cursor-pointer"
+            onClick={onClose}
+            aria-label="Close Settings"
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
-            <Trash2 className="w-3.5 h-3.5" />
-            Clear All Keys
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Modal Body (Scrollable with overscroll containment) */}
+        <div className="p-4 sm:p-5 space-y-4 overflow-y-auto overscroll-contain text-xs text-slate-300 flex-1">
+          <ProviderSelector
+            selectedProvider={localProvider}
+            onSelectProvider={handleProviderSelect}
+          />
+
+          <ModelSelector
+            provider={localProvider}
+            selectedModel={localModel}
+            onSelectModel={setLocalModel}
+          />
+
+          <ApiKeySection
+            provider={localProvider}
+            configuredKey={configuredKey}
+            newKey={localProvider === 'gemini' ? newGeminiKey : newOpenaiKey}
+            onNewKeyChange={handleNewKeyChange}
+            onRemoveActiveKey={handleRemoveActiveKey}
+            onTestConnection={handleTestConnection}
+            testing={testing}
+            testResult={testResult}
+          />
+
+          {/* Privacy & Security Note */}
+          <div className="p-3 bg-slate-850/80 border border-slate-700/60 rounded-xl flex items-start gap-2.5 text-[11px] text-slate-400">
+            <Shield className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
+            <p className="leading-relaxed">
+              <strong>100% Client-Side Privacy:</strong> Your keys are stored exclusively in your browser&apos;s localStorage and are never sent to any intermediary server.
+            </p>
+          </div>
+        </div>
+
+        {/* Footer Actions (Optimized for Thumb-Zone & Safe-Area) */}
+        <div className="p-3.5 sm:p-4 border-t border-slate-800 bg-slate-900/95 shrink-0 flex flex-col gap-2 pb-[max(env(safe-area-inset-bottom),0.875rem)]">
+          <button
+            type="button"
+            onClick={handleSave}
+            className="w-full py-3 px-4 text-xs sm:text-sm font-bold text-slate-950 bg-gradient-to-r from-teal-400 to-emerald-400 hover:from-teal-300 hover:to-emerald-300 rounded-xl shadow-lg shadow-teal-500/20 transition flex items-center justify-center gap-2 cursor-pointer min-h-[48px] active:scale-[0.99]"
+          >
+            <Check className="w-4 h-4 stroke-[2.5]" />
+            <span>Save &amp; Connect AI Engine</span>
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={handleClearAll}
+              className="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1.5 py-2 px-2.5 rounded-lg hover:bg-rose-950/30 transition cursor-pointer min-h-[40px]"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Clear Keys</span>
+            </button>
+
             <button
               type="button"
               onClick={onClose}
-              className="text-xs text-slate-300 hover:text-white px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 transition cursor-pointer"
+              className="text-xs text-slate-300 hover:text-white px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 transition cursor-pointer min-h-[40px]"
             >
               Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              className="text-xs font-bold text-slate-950 bg-teal-500 hover:bg-teal-400 px-4 py-2 rounded-xl shadow-lg shadow-teal-500/20 transition flex items-center gap-1.5 cursor-pointer"
-            >
-              Save & Connect
             </button>
           </div>
         </div>

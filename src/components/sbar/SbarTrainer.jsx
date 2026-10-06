@@ -1,17 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import {
-  Award,
-  Play,
-  Pause,
-  RotateCcw,
-  CheckCircle,
-  AlertCircle,
-  Mic,
-  MicOff,
-  Sparkles,
-  FileText,
-  Volume2
-} from 'lucide-react';
+import { Award, FileText, Clock, Sparkles } from 'lucide-react';
+import SbarTimer from './SbarTimer';
+import SbarFormSection from './SbarFormSection';
+import SbarScorecard from './SbarScorecard';
+import SbarPearlsSection from './SbarPearlsSection';
 
 export default function SbarTrainer({
   scenario,
@@ -21,6 +13,7 @@ export default function SbarTrainer({
   const [isActive, setIsActive] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [audioTranscript, setAudioTranscript] = useState('');
+  const [mobileTab, setMobileTab] = useState('drill');
 
   const [notes, setNotes] = useState({
     situation: '',
@@ -31,11 +24,6 @@ export default function SbarTrainer({
 
   const [feedback, setFeedback] = useState(null);
   const recognitionRef = useRef(null);
-
-  // SVG circular timer geometry
-  const radius = 38;
-  const circumference = 2 * Math.PI * radius; // ~238.76
-  const strokeDashoffset = ((60 - timer) / 60) * circumference;
 
   // Timer countdown
   useEffect(() => {
@@ -205,23 +193,16 @@ export default function SbarTrainer({
     });
   };
 
-  // Color selection based on timer
-  const timerColor =
-    timer > 30 ? '#10b981' : timer > 10 ? '#f59e0b' : '#f43f5e';
-
-  const timerTextClass =
-    timer > 30 ? 'text-emerald-400' : timer > 10 ? 'text-amber-400' : 'text-rose-400 animate-pulse';
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* SBAR Header Card */}
-      <div className="bg-slate-850/90 border border-slate-700/80 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 font-bold shadow-lg shadow-emerald-500/20">
-            <Award className="w-6 h-6 stroke-[2.2]" />
+      <div className="bg-slate-850/90 border border-slate-700/80 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        <div className="flex items-start sm:items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 font-bold shadow-lg shadow-emerald-500/20 shrink-0">
+            <Award className="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
                 60-Second Senior Consultant Handover (SBAR)
               </h2>
@@ -229,7 +210,7 @@ export default function SbarTrainer({
                 Clinic Drill
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-400 mt-1">
               Practice summarizing a 40-minute consultation into a 60-second high-yield case handover.
             </p>
           </div>
@@ -238,265 +219,75 @@ export default function SbarTrainer({
         <button
           type="button"
           onClick={handlePrefill}
-          className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-emerald-500/40 text-slate-200 hover:text-emerald-300 text-xs font-semibold flex items-center gap-2 transition cursor-pointer min-h-[44px]"
+          className="w-full md:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 hover:border-emerald-500/40 text-slate-200 hover:text-emerald-300 text-xs font-semibold flex items-center justify-center gap-2 transition cursor-pointer min-h-[44px]"
         >
           <FileText className="w-4 h-4 text-emerald-400" />
           <span>Prefill from Current Case</span>
         </button>
       </div>
 
+      {/* Mobile Segmented Switcher (< lg) */}
+      <div className="flex lg:hidden p-1 bg-slate-900/90 border border-slate-700/80 rounded-xl">
+        <button
+          type="button"
+          onClick={() => setMobileTab('drill')}
+          className={`flex-1 py-2 text-xs font-semibold rounded-lg transition flex items-center justify-center gap-2 min-h-[44px] cursor-pointer ${
+            mobileTab === 'drill'
+              ? 'bg-emerald-500 text-slate-950 shadow-md font-bold'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Clock className="w-4 h-4" />
+          <span>Handover Drill</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileTab('pearls')}
+          className={`flex-1 py-2 text-xs font-semibold rounded-lg transition flex items-center justify-center gap-2 min-h-[44px] cursor-pointer ${
+            mobileTab === 'pearls'
+              ? 'bg-emerald-500 text-slate-950 shadow-md font-bold'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Sparkles className="w-4 h-4" />
+          <span>Consultant Pearls</span>
+        </button>
+      </div>
+
+      {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Formulator & Voice Practice */}
-        <div className="lg:col-span-8 bg-slate-850/90 border border-slate-700/80 rounded-2xl p-5 sm:p-6 shadow-xl space-y-5">
-          {/* Top Control Bar with Circular SVG Timer */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-4 border-b border-slate-700/70">
-            <div className="flex items-center gap-4">
-              {/* Circular SVG Timer */}
-              <div className="relative w-20 h-20 shrink-0 flex items-center justify-center">
-                <svg className="w-20 h-20 -rotate-90" viewBox="0 0 96 96">
-                  <circle
-                    cx="48"
-                    cy="48"
-                    r={radius}
-                    className="stroke-slate-800"
-                    strokeWidth="7"
-                    fill="transparent"
-                  />
-                  <circle
-                    cx="48"
-                    cy="48"
-                    r={radius}
-                    stroke={timerColor}
-                    strokeWidth="7"
-                    fill="transparent"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={strokeDashoffset}
-                    strokeLinecap="round"
-                    className="circular-progress-circle"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className={`text-base font-mono font-bold tabular-nums ${timerTextClass}`}>
-                    00:{timer < 10 ? `0${timer}` : timer}
-                  </span>
-                  <span className="text-[9px] uppercase tracking-wider text-slate-400">secs</span>
-                </div>
-              </div>
+        <div
+          className={`${
+            mobileTab === 'drill' ? 'block' : 'hidden'
+          } lg:block lg:col-span-8 bg-slate-850/90 border border-slate-700/80 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5`}
+        >
+          <SbarTimer
+            timer={timer}
+            isActive={isActive}
+            isRecording={isRecording}
+            onStartPause={handleStartPause}
+            onReset={handleReset}
+            onToggleRecording={toggleRecording}
+          />
 
-              {/* Timer & Dictation Controls */}
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleStartPause}
-                    className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer min-h-[44px]"
-                  >
-                    {isActive ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                    <span>{isActive ? 'Pause' : timer === 0 ? 'Restart' : 'Start 60s Drill'}</span>
-                  </button>
+          <SbarFormSection
+            notes={notes}
+            onNotesChange={setNotes}
+            audioTranscript={audioTranscript}
+            onEvaluate={handleEvaluate}
+          />
 
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
-                    title="Reset to 60 seconds"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                  </button>
-                </div>
-                <p className="text-[11px] text-slate-400">
-                  {isActive ? 'Simulating senior consultant listening...' : 'Click start when ready to present.'}
-                </p>
-              </div>
-            </div>
-
-            {/* Microphone Presentation Recorder */}
-            <div className="flex flex-col items-end gap-1.5">
-              <button
-                type="button"
-                onClick={toggleRecording}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer min-h-[44px] border ${
-                  isRecording
-                    ? 'bg-rose-600 text-white border-rose-500 animate-pulse'
-                    : 'bg-slate-800 text-slate-300 hover:text-white border-slate-700'
-                }`}
-              >
-                {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                <span>{isRecording ? 'Recording Speech...' : 'Voice Practice Dictation'}</span>
-              </button>
-              {isRecording && (
-                <span className="text-[10px] text-rose-300 font-mono flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-rose-400 animate-ping" />
-                  Live transcribing speech...
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Voice Transcript Box if active */}
-          {audioTranscript && (
-            <div className="p-3 rounded-xl bg-slate-900 border border-emerald-500/40 text-xs">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1 mb-1">
-                <Volume2 className="w-3 h-3" />
-                Live Speech Dictation:
-              </span>
-              <p className="text-slate-200 italic">{audioTranscript}</p>
-            </div>
-          )}
-
-          {/* SBAR Interactive Form */}
-          <div className="space-y-4 text-xs">
-            {/* S - Situation */}
-            <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="font-bold text-emerald-400 flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-[10px] font-bold">
-                    S
-                  </span>
-                  Situation: Patient Demographics & Presenting State
-                </label>
-                <span className="text-[10px] text-slate-400 font-mono">15s allotment</span>
-              </div>
-              <textarea
-                rows={2}
-                value={notes.situation}
-                onChange={(e) => setNotes({ ...notes, situation: e.target.value })}
-                placeholder="e.g. Vikram Mehta, 38-year-old corporate lawyer presenting with acute violent epigastric burning and vomiting for 4 days..."
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-emerald-500"
-              />
-            </div>
-
-            {/* B - Background */}
-            <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="font-bold text-emerald-400 flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-[10px] font-bold">
-                    B
-                  </span>
-                  Background: Etiology, Stressors & Medical Timeline
-                </label>
-                <span className="text-[10px] text-slate-400 font-mono">15s allotment</span>
-              </div>
-              <textarea
-                rows={2}
-                value={notes.background}
-                onChange={(e) => setNotes({ ...notes, background: e.target.value })}
-                placeholder="e.g. Ailments from excessive coffee, irregular late dinners, litigation stress, and cold drafts..."
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-emerald-500"
-              />
-            </div>
-
-            {/* A - Assessment */}
-            <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="font-bold text-emerald-400 flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-[10px] font-bold">
-                    A
-                  </span>
-                  Assessment: Totality (LSMC + Physical Generals + Mind)
-                </label>
-                <span className="text-[10px] text-slate-400 font-mono">20s allotment</span>
-              </div>
-              <textarea
-                rows={3}
-                value={notes.assessment}
-                onChange={(e) => setNotes({ ...notes, assessment: e.target.value })}
-                placeholder="e.g. Extremely chilly (< cold drafts), thirst for frequent warm sips, waking at 3:30 AM with cramps, ineffectual urging for stool, fiery irritability..."
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-emerald-500"
-              />
-            </div>
-
-            {/* R - Recommendation */}
-            <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="font-bold text-emerald-400 flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-[10px] font-bold">
-                    R
-                  </span>
-                  Recommendation: Proposed Remedy, Potency & Differential
-                </label>
-                <span className="text-[10px] text-slate-400 font-mono">10s allotment</span>
-              </div>
-              <textarea
-                rows={2}
-                value={notes.recommendation}
-                onChange={(e) => setNotes({ ...notes, recommendation: e.target.value })}
-                placeholder="e.g. Nux Vomica 200C single dose. Differentials: Lycopodium (ruled out by absence of 4-8 PM aggravation) and Arsenic Album..."
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-emerald-500"
-              />
-            </div>
-
-            {/* Submit for Grading */}
-            <button
-              type="button"
-              onClick={handleEvaluate}
-              className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/30 transition cursor-pointer min-h-[44px]"
-            >
-              <CheckCircle className="w-4 h-4" />
-              <span>Grade My Handover Presentation</span>
-            </button>
-          </div>
-
-          {/* Feedback Result Card */}
-          {feedback && (
-            <div className="mt-4 p-4 rounded-xl bg-slate-900 border border-emerald-500/40 text-xs space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-emerald-300 text-sm">Handover Score</span>
-                <span className="px-2.5 py-1 rounded-full bg-emerald-500 text-slate-950 font-bold text-xs">
-                  {feedback.score} / 100
-                </span>
-              </div>
-              <p className="text-slate-200 italic">&ldquo;{feedback.verdict}&rdquo;</p>
-              <ul className="space-y-1 list-disc list-inside text-slate-300 text-[11px] pt-1">
-                {feedback.checklist.map((item, idx) => (
-                  <li key={idx}>{item}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <SbarScorecard feedback={feedback} />
         </div>
 
         {/* Right Column: Senior Consultant Clinic Pearls */}
-        <div className="lg:col-span-4 space-y-4">
-          <div className="bg-slate-850/90 border border-slate-700/80 rounded-2xl p-5 shadow-xl space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-              <AlertCircle className="w-4 h-4" />
-              Senior Doctor Clinic Traps to Avoid
-            </h3>
-
-            <div className="space-y-3 text-xs">
-              <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
-                <p className="font-semibold text-slate-200 mb-1">1. Leading with Diagnosis Instead of Totality</p>
-                <p className="text-slate-400 text-[11px]">
-                  Never say &ldquo;This is a case of migraine so I want to give Belladonna.&rdquo; Start with the peculiar modalities and thermal characteristics.
-                </p>
-              </div>
-
-              <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
-                <p className="font-semibold text-slate-200 mb-1">2. Omitting Thermal Individualization</p>
-                <p className="text-slate-400 text-[11px]">
-                  If you fail to clarify whether the patient is chilly or hot, senior clinicians will discount your suggested prescription instantly.
-                </p>
-              </div>
-
-              <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
-                <p className="font-semibold text-slate-200 mb-1">3. Lack of a Justified Differential</p>
-                <p className="text-slate-400 text-[11px]">
-                  Always mention which second remedy was considered and the precise symptom that ruled it out.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-emerald-950/40 to-slate-900 border border-emerald-500/30 rounded-2xl p-4 shadow-xl text-xs text-slate-300">
-            <h4 className="font-bold text-emerald-300 flex items-center gap-1.5 mb-1.5">
-              <Sparkles className="w-4 h-4" />
-              Consultant Advice:
-            </h4>
-            <p className="text-[11px] leading-relaxed text-slate-300">
-              In top classical homeopathic clinics, junior associates who can deliver an organized SBAR handover in 60 seconds are trusted with independent OPD duties immediately.
-            </p>
-          </div>
+        <div
+          className={`${
+            mobileTab === 'pearls' ? 'block' : 'hidden'
+          } lg:block lg:col-span-4`}
+        >
+          <SbarPearlsSection />
         </div>
       </div>
     </div>
