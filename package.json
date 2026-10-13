@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test:clinical": "node scripts/run-clinical-500.mjs"
+    "test:clinical": "node scripts/run-clinical-500.mjs",
+    "test:edge": "node scripts/test-edge-cases.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.52.0",

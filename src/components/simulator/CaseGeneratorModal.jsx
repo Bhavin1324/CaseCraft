@@ -52,6 +52,7 @@ export default function CaseGeneratorModal({
 
   const [category, setCategory] = useState(CATEGORIES[0].id);
   const [difficulty, setDifficulty] = useState(DIFFICULTIES[1].id);
+  const [curatedFilter, setCuratedFilter] = useState('all');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -89,6 +90,13 @@ export default function CaseGeneratorModal({
   };
 
   const activeDifficultyObj = DIFFICULTIES.find((d) => d.id === difficulty) || DIFFICULTIES[1];
+
+  const filteredCurated = (curatedScenarios || []).filter((s) => {
+    const isAcute = s.timelineType === 'acute' || s.difficulty?.toLowerCase().includes('acute');
+    if (curatedFilter === 'acute') return isAcute;
+    if (curatedFilter === 'chronic') return !isAcute;
+    return true;
+  });
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-xs p-0 sm:p-4 overflow-hidden animate-in fade-in duration-200">
@@ -190,7 +198,7 @@ export default function CaseGeneratorModal({
                 </button>
               ))}
             </div>
-            <div className="mt-2 p-2.5 bg-slate-850/80 border border-slate-750 rounded-xl text-[11px] text-slate-300">
+            <div className="mt-2 p-2.5 bg-slate-855/80 border border-slate-750 rounded-xl text-[11px] text-slate-300">
               <strong className="text-teal-300 block mb-0.5">{activeDifficultyObj.fullTitle}:</strong>
               {activeDifficultyObj.desc}
             </div>
@@ -203,30 +211,89 @@ export default function CaseGeneratorModal({
             </div>
           )}
 
-          {/* Quick Select from Curated Archetypes */}
+          {/* Quick Select from Curated Cases with Acute/Chronic Filter */}
           {curatedScenarios && curatedScenarios.length > 0 && (
-            <div className="pt-2 border-t border-slate-800">
-              <span className="text-xs font-semibold text-slate-300 block mb-2">
-                Or Quick-Select Curated Classical Cases:
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {curatedScenarios.map((s) => (
+            <div className="pt-2 border-t border-slate-800 space-y-2.5">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <span className="text-xs font-semibold text-slate-300">
+                  Or Quick-Select Curated Cases:
+                </span>
+                <div className="flex items-center p-0.5 bg-slate-800 rounded-lg border border-slate-700 text-[10px]">
                   <button
-                    key={s.id}
                     type="button"
-                    onClick={() => {
-                      onSelectCurated(s.id);
-                      onClose();
-                    }}
-                    className="p-2.5 rounded-xl bg-slate-800/70 hover:bg-slate-700/80 border border-slate-700/70 text-left transition flex items-center justify-between cursor-pointer min-h-[48px]"
+                    onClick={() => setCuratedFilter('all')}
+                    className={`px-2 py-1 rounded-md font-semibold transition cursor-pointer ${
+                      curatedFilter === 'all'
+                        ? 'bg-teal-500 text-slate-950 font-bold'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
                   >
-                    <div className="truncate pr-2">
-                      <p className="font-semibold text-slate-200 text-xs truncate">{s.title}</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">{s.difficulty || 'Classical Case'}</p>
-                    </div>
-                    <Stethoscope className="w-4 h-4 text-teal-400 shrink-0" />
+                    All ({curatedScenarios.length})
                   </button>
-                ))}
+                  <button
+                    type="button"
+                    onClick={() => setCuratedFilter('acute')}
+                    className={`px-2 py-1 rounded-md font-semibold transition cursor-pointer ${
+                      curatedFilter === 'acute'
+                        ? 'bg-amber-500 text-slate-950 font-bold'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    ⚡ Acute
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCuratedFilter('chronic')}
+                    className={`px-2 py-1 rounded-md font-semibold transition cursor-pointer ${
+                      curatedFilter === 'chronic'
+                        ? 'bg-sky-500 text-slate-950 font-bold'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    ⏳ Chronic
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[220px] overflow-y-auto overscroll-contain pr-1">
+                {filteredCurated.map((s) => {
+                  const isAcute =
+                    s.timelineType === 'acute' ||
+                    s.difficulty?.toLowerCase().includes('acute');
+
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => {
+                        onSelectCurated(s.id);
+                        onClose();
+                      }}
+                      className="p-2.5 rounded-xl bg-slate-800/70 hover:bg-slate-750 border border-slate-700/70 hover:border-teal-500/40 text-left transition flex items-center justify-between cursor-pointer min-h-[50px]"
+                    >
+                      <div className="truncate pr-2">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span
+                            className={`text-[9px] px-1.5 py-0.2 rounded font-bold uppercase ${
+                              isAcute
+                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                : 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
+                            }`}
+                          >
+                            {isAcute ? 'Acute' : 'Chronic'}
+                          </span>
+                          <p className="font-semibold text-slate-200 text-xs truncate">
+                            {s.title}
+                          </p>
+                        </div>
+                        <p className="text-[10px] text-slate-400 truncate">
+                          {s.patientName?.split('(')[0] || s.difficulty}
+                        </p>
+                      </div>
+                      <Stethoscope className="w-4 h-4 text-teal-400 shrink-0" />
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}

@@ -679,11 +679,14 @@ export async function generateDynamicCase({
 
 /**
  * Fallback heuristic response generator (runs 100% offline if no API key is provided)
+ * Supports all 14 curated cases and dynamically generated cases via clinical totality extraction.
  */
 export function generateLocalHeuristicResponse(scenario, query) {
   const q = (query || '').toLowerCase();
   const id = scenario?.id;
+  const truths = scenario?.hiddenTruths || scenario?.persona?.hiddenTruths || {};
 
+  // Handcrafted baseline dialogue for original classic benchmarks
   if (id === 'nux-vomica-acute') {
     if (q.includes('thermal') || q.includes('hot') || q.includes('cold') || q.includes('draft') || q.includes('fan')) {
       return "Doctor, I cannot stand drafts of air! Even when the room is comfortable, a little draft from an AC vent makes me shiver. I keep a blazer or sweater on even when others don't.";
@@ -703,7 +706,6 @@ export function generateLocalHeuristicResponse(scenario, query) {
     if (q.includes('mood') || q.includes('temper') || q.includes('anger') || q.includes('stress')) {
       return "Honestly? I'm on edge. People in my office are working too slowly and it drives me crazy! Any sudden noise or contradiction sets my teeth on edge. I just want quick, effective solutions.";
     }
-    return "Doctor, it feels like a heavy stone pressing right below my breastbone with acute sour burning rising into my throat. Can you give me something quick so I can return to my desk?";
   }
 
   if (id === 'natrum-mur-migraine') {
@@ -722,7 +724,6 @@ export function generateLocalHeuristicResponse(scenario, query) {
     if (q.includes('sad') || q.includes('grief') || q.includes('cry') || q.includes('consol')) {
       return "...(looks down, quiet pause)... I don't really like discussing personal matters or feeling pitied. If someone tries to comfort me when I'm upset, it honestly makes me irritated and I withdraw more. I only cry when I am completely alone.";
     }
-    return "It feels like a tiny hammer beating relentlessly inside the right side of my temple. My vision gets slightly zigzagged before it reaches peak intensity.";
   }
 
   if (id === 'chamomilla-pediatric') {
@@ -735,7 +736,6 @@ export function generateLocalHeuristicResponse(scenario, query) {
     if (q.includes('stool') || q.includes('diaper') || q.includes('smell')) {
       return "His diaper is shocking—it looks just like chopped boiled spinach with mucous, and the smell is terrible, just like rotten sulfurous eggs.";
     }
-    return "He is in acute torment from his gums cutting through. He refuses to let anyone touch his mouth, snaps his teeth, and cries until he turns purple.";
   }
 
   if (id === 'arsenicum-anxiety') {
@@ -749,10 +749,60 @@ export function generateLocalHeuristicResponse(scenario, query) {
       return "Without fail, 1:00 AM to 2:00 AM is terror for me. I wake up gasping with burning stomach pain, my heart beating at 130 bpm, pacing the room in panic.";
     }
     if (q.includes('fear') || q.includes('death') || q.includes('worry')) {
-      return "Doctor, please be honest with me... is this stomach cancer? I get terrified that no medicine will work and my time is short. I cannot be left alone in a room at night. I need someone holding my hand.";
+      return "Doctor, please be honest with me... is this serious? I get terrified that no medicine will work and my time is short. I cannot be left alone in a room at night. I need someone holding my hand.";
     }
-    return "The pain in my stomach is like hot burning embers. Sitting upright and drinking warm tea is the only thing that gives a brief reprieve.";
   }
 
-  return "I am experiencing this persistent trouble, Doctor. It affects my whole daily routine. Please help me figure out what is causing this.";
+  // Dynamic Totality Heuristics for all 14 curated cases & dynamic AI cases
+  if (q.includes('thermal') || q.includes('hot') || q.includes('cold') || q.includes('weather') || q.includes('draft') || q.includes('fan') || q.includes('sweater') || q.includes('sun')) {
+    if (truths.thermal) {
+      return `Regarding temperature and weather, Doctor: ${truths.thermal}.`;
+    }
+  }
+
+  if (q.includes('thirst') || q.includes('water') || q.includes('drink') || q.includes('sip') || q.includes('gulp') || q.includes('dry')) {
+    if (truths.thirst) {
+      return `When it comes to drinking water: ${truths.thirst}.`;
+    }
+  }
+
+  if (q.includes('crave') || q.includes('craving') || q.includes('food') || q.includes('eat') || q.includes('appetite') || q.includes('aversion')) {
+    if (truths.cravings) {
+      return `Regarding food and appetite: ${truths.cravings}.`;
+    }
+  }
+
+  if (q.includes('worse') || q.includes('aggravat') || q.includes('when') || q.includes('time') || q.includes('morning') || q.includes('night') || q.includes('motion')) {
+    if (truths.modalities?.agg) {
+      return `It definitely feels worse ${truths.modalities.agg.replace(/^Worse\s*/i, '')}.`;
+    }
+  }
+
+  if (q.includes('better') || q.includes('relief') || q.includes('ameliorat') || q.includes('helps') || q.includes('ease')) {
+    if (truths.modalities?.amel) {
+      return `What gives me some relief is ${truths.modalities.amel.replace(/^Better\s*/i, '')}.`;
+    }
+  }
+
+  if (q.includes('feel') || q.includes('sensation') || q.includes('pain') || q.includes('describe') || q.includes('type of')) {
+    if (truths.sensation) {
+      return `If I had to describe the exact sensation, Doctor, it's ${truths.sensation}.`;
+    }
+  }
+
+  if (q.includes('stool') || q.includes('bowel') || q.includes('toilet') || q.includes('sleep') || q.includes('diarrhea') || q.includes('constipat')) {
+    if (truths.bowels || truths.stool) {
+      return `With my digestion and system: ${truths.bowels || truths.stool}.`;
+    }
+  }
+
+  if (q.includes('mood') || q.includes('stress') || q.includes('temper') || q.includes('anger') || q.includes('anxious') || q.includes('sad') || q.includes('alone') || q.includes('grief')) {
+    if (truths.mind) {
+      return `Emotionally and mentally: ${truths.mind}.`;
+    }
+  }
+
+  // Default context-aware layperson reply
+  const chief = scenario?.chiefComplaint || 'this uncomfortable complaint';
+  return `Doctor, I came in because of ${chief.toLowerCase().replace(/\.$/, '')}. It has been troubling me in my daily life, and I really hope we can find the right treatment.`;
 }

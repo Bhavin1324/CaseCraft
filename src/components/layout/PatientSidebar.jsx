@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   User,
   ShieldCheck,
@@ -6,8 +7,10 @@ import {
   Thermometer,
   Brain,
   Droplets,
-  Sparkles,
-  RotateCcw
+  RotateCcw,
+  Lightbulb,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 export default function PatientSidebar({
@@ -18,7 +21,19 @@ export default function PatientSidebar({
   probedCategories = {},
   onResetCase
 }) {
+  const [isHintsOpen, setIsHintsOpen] = useState(false);
   const probedCount = Object.values(probedCategories).filter(Boolean).length;
+
+  const isAcute =
+    currentScenario?.timelineType === 'acute' ||
+    currentScenario?.difficulty?.toLowerCase().includes('acute');
+
+  const acuteCases = scenariosList.filter(
+    (s) => s.timelineType === 'acute' || s.difficulty?.toLowerCase().includes('acute')
+  );
+  const chronicCases = scenariosList.filter(
+    (s) => !acuteCases.includes(s)
+  );
 
   return (
     <aside className="hidden lg:flex flex-col w-[280px] bg-slate-900 border-r border-slate-800/80 p-4 space-y-4 overflow-y-auto shrink-0">
@@ -38,8 +53,14 @@ export default function PatientSidebar({
               </span>
             </div>
           </div>
-          <span className="text-[9px] px-2 py-0.5 rounded font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-            {currentScenario?.difficulty?.split(' ')[0] || 'Case'}
+          <span
+            className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase tracking-wider border ${
+              isAcute
+                ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                : 'bg-sky-500/15 text-sky-300 border-sky-500/30'
+            }`}
+          >
+            {isAcute ? '⚡ Acute' : '⏳ Chronic'}
           </span>
         </div>
 
@@ -52,21 +73,40 @@ export default function PatientSidebar({
           </p>
         </div>
 
-        {/* Scenario Switcher Dropdown */}
+        {/* Scenario Switcher Dropdown with Categorized Optgroups */}
         <div>
           <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-            Select Curated Case:
+            Select Clinical Case:
           </label>
           <select
             value={selectedScenarioId}
             onChange={(e) => onSwitchScenario(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg p-2 focus:outline-none focus:border-emerald-500"
+            className="w-full bg-slate-900 border border-slate-700 text-xs text-slate-200 rounded-lg p-2 focus:outline-none focus:border-emerald-500 font-medium"
           >
-            {scenariosList.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.title}
-              </option>
-            ))}
+            {acuteCases.length > 0 && (
+              <optgroup
+                label="⚡ Acute Clinical Cases"
+                className="bg-slate-900 text-amber-300 font-semibold"
+              >
+                {acuteCases.map((s) => (
+                  <option key={s.id} value={s.id} className="text-slate-200 font-normal">
+                    {s.title}
+                  </option>
+                ))}
+              </optgroup>
+            )}
+            {chronicCases.length > 0 && (
+              <optgroup
+                label="⏳ Chronic Clinical Cases"
+                className="bg-slate-900 text-sky-300 font-semibold"
+              >
+                {chronicCases.map((s) => (
+                  <option key={s.id} value={s.id} className="text-slate-200 font-normal">
+                    {s.title}
+                  </option>
+                ))}
+              </optgroup>
+            )}
           </select>
         </div>
       </div>
@@ -185,18 +225,46 @@ export default function PatientSidebar({
         </div>
       </div>
 
-      {/* Coaching Clues */}
-      {currentScenario?.hints && (
-        <div className="bg-slate-855 border border-slate-700/80 rounded-2xl p-3.5 shadow-md">
-          <p className="text-[11px] font-bold text-emerald-300 flex items-center gap-1 mb-1.5">
-            <Sparkles className="w-3 h-3" />
-            Consultant Probing Clues:
-          </p>
-          <ul className="text-[10px] text-slate-300 list-disc list-inside space-y-1">
-            {currentScenario.hints.map((h, i) => (
-              <li key={i}>{h}</li>
-            ))}
-          </ul>
+      {/* Collapsible Senior Guidance (Anti-Spoiler) */}
+      {currentScenario?.hints && currentScenario.hints.length > 0 && (
+        <div className="bg-slate-855 border border-slate-700/80 rounded-2xl p-3.5 shadow-md space-y-2">
+          <button
+            type="button"
+            onClick={() => setIsHintsOpen(!isHintsOpen)}
+            className="w-full flex items-center justify-between text-left text-[11px] font-bold text-slate-300 hover:text-white transition cursor-pointer"
+          >
+            <span className="flex items-center gap-1.5 text-emerald-400">
+              <Lightbulb className="w-3.5 h-3.5" />
+              Mentor Guidance
+            </span>
+            <span className="text-[10px] text-slate-400 flex items-center gap-1">
+              {isHintsOpen ? (
+                <>
+                  <EyeOff className="w-3 h-3 text-slate-400" />
+                  <span>Hide</span>
+                </>
+              ) : (
+                <>
+                  <Eye className="w-3 h-3 text-emerald-400" />
+                  <span className="text-emerald-400">Reveal</span>
+                </>
+              )}
+            </span>
+          </button>
+
+          {isHintsOpen ? (
+            <div className="pt-1.5 border-t border-slate-800 text-[10px] text-slate-300 space-y-1.5 animate-in fade-in duration-150">
+              <ul className="list-disc list-inside space-y-1 leading-relaxed">
+                {currentScenario.hints.map((h, i) => (
+                  <li key={i}>{h}</li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p className="text-[10px] text-slate-500 italic">
+              Hidden to prevent bias. Click to view inquiry guidance.
+            </p>
+          )}
         </div>
       )}
 
